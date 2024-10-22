@@ -5,6 +5,7 @@ resource "kubernetes_namespace" "argocd" {
 
   depends_on = [
     kind_cluster.default,
+    local_file.kubeconfig
   ]
 }
 
@@ -17,6 +18,7 @@ resource "helm_release" "argocd" {
 
   depends_on = [
     kind_cluster.default,
+    local_file.kubeconfig,
     kubernetes_namespace.argocd
   ]
 }

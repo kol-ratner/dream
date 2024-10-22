@@ -5,10 +5,11 @@ resource "kubernetes_namespace" "nginx" {
 
   depends_on = [
     kind_cluster.default,
+    local_file.kubeconfig
   ]
 }
 
-resource "helm_release" "nginx" {
+resource "helm_release" "ingress_nginx" {
   name       = "ingress-nginx"
   namespace  = kubernetes_namespace.nginx.id
   repository = "https://kubernetes.github.io/ingress-nginx"
@@ -19,10 +20,30 @@ resource "helm_release" "nginx" {
     name  = "namespace"
     value = kubernetes_namespace.nginx.id
   }
-
+  set {
+    name  = "controller.kind"
+    value = "DaemonSet"
+    type  = "string"
+  }
+  set {
+    name  = "controller.ingressClass"
+    value = "nginx"
+    type  = "string"
+  }
+  set {
+    name  = "controller.hostPort.enabled"
+    value = true
+    type  = "string"
+  }
+  set {
+    name  = "controller.service.type"
+    value = "NodePort"
+    type  = "string"
+  }
 
   depends_on = [
     kind_cluster.default,
+    local_file.kubeconfig,
     kubernetes_namespace.nginx
   ]
 }
