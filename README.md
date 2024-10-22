@@ -4,5 +4,5 @@ README
 1.
 ```
 cd terraform
-terraform init; terraform apply
+export TF_VAR_home_directory="$HOME"; terraform init; terraform apply
 ```

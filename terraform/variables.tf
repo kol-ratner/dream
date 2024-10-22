@@ -1,3 +1,3 @@
-variable "k8s_config_path" {
-  default = "~/.kube/kind/config"
+variable "home_directory" {
+  default = "/home/" # Replace with the actual path to the home directory
 }

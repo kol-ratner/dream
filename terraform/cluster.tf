@@ -2,7 +2,7 @@ resource "kind_cluster" "default" {
   name            = "dream-cluster"
   node_image      = "kindest/node:v1.31.1"
   wait_for_ready  = true
-  kubeconfig_path = var.k8s_config_path
+  kubeconfig_path = "${var.home_directory}/.kube/config"
 
 
   kind_config {
@@ -18,11 +18,13 @@ resource "kind_cluster" "default" {
 
       extra_port_mappings {
         container_port = 80
-        host_port      = 8080
+        host_port      = 80
+        protocol       = "TCP"
       }
       extra_port_mappings {
         container_port = 443
-        host_port      = 8043
+        host_port      = 443
+        protocol       = "TCP"
       }
     }
 
@@ -36,4 +38,9 @@ resource "kind_cluster" "default" {
       role = "worker"
     }
   }
+}
+
+resource "local_file" "kubeconfig" {
+  content  = kind_cluster.default.kubeconfig
+  filename = "${var.home_directory}/.kube/config"
 }
