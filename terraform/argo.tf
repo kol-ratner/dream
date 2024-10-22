@@ -22,3 +22,32 @@ resource "helm_release" "argocd" {
     kubernetes_namespace.argocd
   ]
 }
+
+# resource "kubernetes_ingress" "argocd" {
+#   wait_for_load_balancer = true
+#   metadata {
+#     name      = "argocd-server"
+#     namespace = kubernetes_namespace.argocd.id
+#     annotations = {
+#       "kubernetes.io/ingress.class" = "nginx"
+#     }
+#   }
+
+#   spec {
+#     rule {
+#       http {
+#         path {
+#           path = "/"
+#           backend {
+#             service_name = "argocd-server"
+#             service_port = 80
+#           }
+#         }
+#       }
+#     }
+#   }
+# }
+
+# output "load_balancer_hostname" {
+#   value = kubernetes_ingress.argocd.status.0.load_balancer.0.ingress.0.hostname
+# }

@@ -21,11 +21,6 @@ resource "helm_release" "ingress_nginx" {
     value = kubernetes_namespace.nginx.id
   }
   set {
-    name  = "controller.kind"
-    value = "DaemonSet"
-    type  = "string"
-  }
-  set {
     name  = "controller.ingressClass"
     value = "nginx"
     type  = "string"
