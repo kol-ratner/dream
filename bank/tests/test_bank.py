@@ -39,7 +39,7 @@ class TestBankService(unittest.TestCase):
     @patch('bank.bank.json.loads')
     def test_run(self, mock_json_loads):
         mock_json_loads.return_value = {'transaction_id': '123'}
-        with patch.object(self.bank_service, 'handle_incoming_transaction') as mock_handle:
+        with patch.object(self.bank_service, 'handle_incoming_transaction'):
             self.bank_service.run()
             self.mock_channel.basic_consume.assert_called_once()
             self.mock_channel.start_consuming.assert_called_once()
