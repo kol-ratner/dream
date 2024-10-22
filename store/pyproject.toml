@@ -1,0 +1,34 @@
+[project]
+name = "store"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Kol Ratner", email = "60704569+kol-ratner@users.noreply.github.com"},
+]
+dependencies = [
+    "pika>=1.3.2",
+    "pytest>=8.3.3",
+]
+requires-python = "==3.9.*"
+readme = "README.md"
+license = {text = "MIT"}
+
+[tool.pdm]
+distribution = false
+
+[tool.pdm.dev-dependencies]
+dev = [
+    "autopep8>=2.3.1",
+    "Flake8-pyproject>=1.2.3",
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
+
+[tool.flake8]
+ignore = [
+  "E501",
+  "W503",
+]
