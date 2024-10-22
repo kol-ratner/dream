@@ -1,0 +1,32 @@
+name: Pe-Merge Checks
+on:
+  workflow_dispatch: {}
+  pull_request:
+    branches: 
+      - "main"
+    paths:
+      - "bank"
+      - "store"
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: read
+jobs:
+  pre_merge:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ["store", "bank"]
+    defaults:
+      run:
+        working-directory: ${{ matrix.app }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Python Linting
+        run: pdm run flake8 src tests
+      
+      - name: Install Flake8
+        run: |
+          pdm run pytest tests
