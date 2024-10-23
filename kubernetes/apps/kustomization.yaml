@@ -1,6 +1,6 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-namePrefix: kustomize-
+namePrefix: ks-
 resources:
-  - store.yaml
+  - store/kustomization.yaml
   # - bank.yaml
