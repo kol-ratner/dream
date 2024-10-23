@@ -5,8 +5,8 @@ on:
     branches: 
       - "main"
     paths:
-      - "bank"
-      - "store"
+      - "bank/*/**"
+      - "store/*/**"
 permissions:
   id-token: write
   contents: read
@@ -45,6 +45,7 @@ jobs:
           pdm run pytest tests
   CD:
     runs-on: ubuntu-latest
+    needs: CI
     strategy:
       matrix:
         app: ["store", "bank"]
