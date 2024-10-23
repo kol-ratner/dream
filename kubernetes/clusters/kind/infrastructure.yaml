@@ -9,7 +9,7 @@
 #     kind: GitRepository
 #     name: flux-system
 #   serviceAccountName: kustomize-controller
-#   path: ./infrastructure/controllers/cert-manager
+#   path: kubernetes/infrastructure/controllers/cert-manager
 #   prune: true
 #   patches:
 #     - patch: |
@@ -33,7 +33,7 @@
 #     kind: GitRepository
 #     name: flux-system
 #   serviceAccountName: kustomize-controller
-#   path: ./infrastructure/configs/cert-manager
+#   path: kubernetes/infrastructure/configs/cert-manager
 #   prune: true
 # ---
 # apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -47,7 +47,7 @@
 #     kind: GitRepository
 #     name: flux-system
 #   serviceAccountName: kustomize-controller
-#   path: ./infrastructure/controllers/flagger
+#   path: kubernetes/infrastructure/controllers/flagger
 #   prune: true
 # ---
 # apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -61,7 +61,7 @@
 #     kind: GitRepository
 #     name: flux-system
 #   serviceAccountName: kustomize-controller
-#   path: ./infrastructure/configs/flagger
+#   path: kubernetes/infrastructure/configs/flagger
 #   prune: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -75,7 +75,7 @@ spec:
     kind: GitRepository
     name: flux-system
   serviceAccountName: kustomize-controller
-  path: ./infrastructure/controllers/weave-gitops
+  path: kubernetes/infrastructure/controllers/weave-gitops
   prune: true
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -89,6 +89,6 @@ spec:
     kind: GitRepository
     name: flux-system
   serviceAccountName: kustomize-controller
-  path: ./infrastructure/configs/weave-policies
+  path: kubernetes/infrastructure/configs/weave-policies
   prune: true
 
