@@ -14,5 +14,4 @@ spec:
         name: bitnami
       interval: 65m
   # https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml
-  values:
-    namespaceOverride: default
+  values: {}
