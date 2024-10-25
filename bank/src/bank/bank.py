@@ -1,44 +1,39 @@
+import json
 import logging
+import os
 import random
-import time
 import signal
 import sys
-import json
-import pika
-import os
-
-
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s')
+import time
+from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 
 
 class BankService:
+
     def __init__(self):
-        self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
-        self.rabbitmq_user = os.getenv('RABBITMQ_USER')
-        self.rabbitmq_password = os.getenv('RABBITMQ_PASSWORD')
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=self.rabbitmq_host,
-                credentials=pika.PlainCredentials(
-                    username=self.rabbitmq_user,
-                    password=self.rabbitmq_password
-                )
-            )
-        )
-        logging.info("RabbitMQ connection established")
-
-        self.channel = self.connection.channel()
-        self.channel.exchange_declare(
-            exchange='transactions',
-            exchange_type='fanout')
-        result = self.channel.queue_declare(
-            queue='transactions', exclusive=True)
-        self.queue_name = result.method.queue
-        self.channel.queue_bind(exchange='transactions', queue=self.queue_name)
-
+        self._init_logging()
+        self.rabbitmq = self._setup_rabbitmq()        
+        # self._init_postgres()
         logging.info("Bank Service Initialized")
+
+    def _init_logging(self):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def _setup_rabbitmq(self) -> RabbitMQClient:
+        config = RabbitMQConfig(
+            host=os.getenv('RABBITMQ_HOST', 'localhost'),
+            user=os.getenv('RABBITMQ_USER', 'guest'),
+            password=os.getenv('RABBITMQ_PASSWORD', 'guest'),
+            declare_exchange=True,
+            exchange_name='transactions',
+            exchange_type='fanout',
+            declare_queue=True,
+            queue_name='transactions',
+            exclusive_queue=True
+        )
+        return RabbitMQClient(config=config).setup_connection()
 
     def process_transaction(self, transaction_data):
         """
@@ -101,13 +96,13 @@ class BankService:
             except Exception as e:
                 logging.error(f"Error processing message: {str(e)}")
 
-        self.channel.basic_consume(
-            queue=self.queue_name,
+        self.rabbitmq.channel.basic_consume(
+            queue=self.rabbitmq.config.queue_name,
             on_message_callback=callback,
             auto_ack=True)
 
         try:
-            self.channel.start_consuming()
+            self.rabbitmq.channel.start_consuming()
         except Exception as e:
             logging.error(f"Unexpected error in consumer: {str(e)}")
 
