@@ -1,12 +1,13 @@
+import os
 import unittest
 from unittest.mock import patch, MagicMock
 from src.bank.bank import BankService
-
 
 class TestBankService(unittest.TestCase):
 
     @patch('bank.bank.pika.BlockingConnection')
     def setUp(self, mock_connection):
+        os.environ['RABBITMQ_HOST'] = 'localhost'
         self.mock_channel = MagicMock()
         mock_connection.return_value.channel.return_value = self.mock_channel
         self.bank_service = BankService()
