@@ -54,30 +54,30 @@ spec:
   path: kubernetes/infrastructure/configs/rabbitmq-cluster
   prune: true
 ---
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: mongodb-operator
-  namespace: flux-system
-spec:
-  interval: 5m
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  serviceAccountName: kustomize-controller
-  path: kubernetes/infrastructure/controllers/mongodb
-  prune: true
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: mongodb-cluster
-  namespace: flux-system
-spec:
-  interval: 5m
-  sourceRef:
-    kind: GitRepository
-    name: flux-system
-  serviceAccountName: kustomize-controller
-  path: kubernetes/infrastructure/configs/mongodb-cluster
-  prune: true
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: mongodb-operator
+#   namespace: flux-system
+# spec:
+#   interval: 5m
+#   sourceRef:
+#     kind: GitRepository
+#     name: flux-system
+#   serviceAccountName: kustomize-controller
+#   path: kubernetes/infrastructure/controllers/mongodb
+#   prune: true
+# ---
+# apiVersion: kustomize.toolkit.fluxcd.io/v1
+# kind: Kustomization
+# metadata:
+#   name: mongodb-cluster
+#   namespace: flux-system
+# spec:
+#   interval: 5m
+#   sourceRef:
+#     kind: GitRepository
+#     name: flux-system
+#   serviceAccountName: kustomize-controller
+#   path: kubernetes/infrastructure/configs/mongodb-cluster
+#   prune: true
