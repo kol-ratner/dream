@@ -22,7 +22,7 @@ class StoreService:
             pika.ConnectionParameters(
                 host=self.rabbitmq_host,
                 credentials=pika.PlainCredentials(
-                    username=self.rabbitmq_user, 
+                    username=self.rabbitmq_user,
                     password=self.rabbitmq_password
                 )
             )
