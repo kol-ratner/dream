@@ -36,8 +36,8 @@ spec:
         name: bitnami
         namespace: flux-system
       interval: 65m
-  targetNamespace: postgres-system
+  targetNamespace: default
   install:
-    createNamespace: true
+    createNamespace: false
   # https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
   values: {}
