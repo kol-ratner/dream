@@ -3,12 +3,13 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.store.store import StoreService
 
+
 class TestStoreService(unittest.TestCase):
 
     @patch('src.store.store.pika.BlockingConnection')
     def setUp(self, mock_blocking_connection):
         # Mock the connection and channel
-        os.environ['RABBITMQ_HOST'] = 'localhost'       
+        os.environ['RABBITMQ_HOST'] = 'localhost'
         self.mock_connection = MagicMock()
         self.mock_channel = MagicMock()
         mock_blocking_connection.return_value = self.mock_connection

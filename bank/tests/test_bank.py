@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from src.bank.bank import BankService
 
+
 class TestBankService(unittest.TestCase):
 
     @patch('bank.bank.pika.BlockingConnection')
