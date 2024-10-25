@@ -16,8 +16,17 @@ logging.basicConfig(
 class StoreService:
     def __init__(self):
         self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
+        self.rabbitmq_user = os.getenv('RABBITMQ_USER')
+        self.rabbitmq_password = os.getenv('RABBITMQ_PASSWORD')
         self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(self.rabbitmq_host))
+            pika.ConnectionParameters(
+                host=self.rabbitmq_host,
+                credentials=pika.PlainCredentials(
+                    username=self.rabbitmq_user, 
+                    password=self.rabbitmq_password
+                )
+            )
+        )
         logging.info("RabbitMQ connection established")
 
         self.channel = self.connection.channel()
