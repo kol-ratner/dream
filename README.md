@@ -18,3 +18,7 @@ once mongo is live u need to run:
 
 After the MongoDBCommunity resource is running, the Operator no longer requires the user's secret. MongoDB recommends that you securely store the user's password and then delete the user secret:
 `kubectl delete secret base-secret`
+
+
+another little hack cus we dont want to be creating secrets all over the place - just trying to keep this project as simple as possible for now
+`kubectl get sa mongodb-database -n mongodb -o yaml | sed 's/namespace: mongodb/namespace: default/' | kubectl apply -f -`
