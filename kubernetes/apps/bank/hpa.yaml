@@ -2,12 +2,12 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: bank
+  namespace: default
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
     name: bank
-    namespace: default
   minReplicas: 1
   maxReplicas: 10
   metrics:
