@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bank
+  labels:
+    app: bank
+spec:
+  selector:
+    matchLabels:
+      app: bank
+  template:
+    metadata:
+      labels:
+        app: bank
+    spec:
+      containers:
+      - name: bank
+        image: ghcr.io/kol-ratner/dream/bank:main
+        imagePullPolicy: Always
+        env:
+          - name: RABBITMQ_HOST
+            value: rabbitmq.data.svc.cluster.local
+        ports:
+          - containerPort: 80
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
