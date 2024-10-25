@@ -1,39 +1,36 @@
+import json
 import logging
+import os
 import random
-import time
-import uuid
 import signal
 import sys
-import json
-import pika
-import os
-
-logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
-)
+import time
+import uuid
+from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 
 
 class StoreService:
+    
     def __init__(self):
-        self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
-        self.rabbitmq_user = os.getenv('RABBITMQ_USER')
-        self.rabbitmq_password = os.getenv('RABBITMQ_PASSWORD')
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters(
-                host=self.rabbitmq_host,
-                credentials=pika.PlainCredentials(
-                    username=self.rabbitmq_user,
-                    password=self.rabbitmq_password
-                )
-            )
-        )
-        logging.info("RabbitMQ connection established")
+        self._init_logging()
+        self.rabbitmq = self._setup_rabbitmq()        
+        logging.info("Bank Service Initialized")
 
-        self.channel = self.connection.channel()
-        self.channel.exchange_declare(
-            exchange="transactions",
-            exchange_type="fanout")
-        logging.info("Store Service Initialized")
+    def _init_logging(self):
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s')
+
+    def _setup_rabbitmq(self) -> RabbitMQClient:
+        config = RabbitMQConfig(
+            host=os.getenv('RABBITMQ_HOST', 'localhost'),
+            user=os.getenv('RABBITMQ_USER', 'guest'),
+            password=os.getenv('RABBITMQ_PASSWORD', 'guest'),
+            declare_exchange=True,
+            exchange_name='transactions',
+            exchange_type='fanout',
+        )
+        return RabbitMQClient(config=config).setup_connection()
 
     def generate_transaction(self):
         """
@@ -61,7 +58,7 @@ class StoreService:
         """
         try:
             message = json.dumps(transaction_data).encode("utf-8")
-            self.channel.basic_publish(
+            self.rabbitmq.channel.basic_publish(
                 exchange="transactions", routing_key="", body=message
             )
             logging.info(
