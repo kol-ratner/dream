@@ -6,6 +6,7 @@ import signal
 import sys
 import json
 import pika
+import os
 
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
@@ -14,14 +15,14 @@ logging.basicConfig(
 
 class StoreService:
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters("localhost")
-        )
+        self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(self.rabbitmq_host))
+        logging.info("RabbitMQ connection established")
+
         self.channel = self.connection.channel()
         self.channel.exchange_declare(
             exchange="transactions",
             exchange_type="fanout")
-        logging.info("RabbitMQ connection established")
         logging.info("Store Service Initialized")
 
     def generate_transaction(self):

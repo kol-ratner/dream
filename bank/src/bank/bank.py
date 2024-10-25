@@ -5,6 +5,8 @@ import signal
 import sys
 import json
 import pika
+import os 
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -13,8 +15,10 @@ logging.basicConfig(
 
 class BankService:
     def __init__(self):
-        self.connection = pika.BlockingConnection(
-            pika.ConnectionParameters('localhost'))
+        self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(self.rabbitmq_host))
+        logging.info("RabbitMQ connection established")
+
         self.channel = self.connection.channel()
         self.channel.exchange_declare(
             exchange='transactions',
@@ -24,7 +28,6 @@ class BankService:
         self.queue_name = result.method.queue
         self.channel.queue_bind(exchange='transactions', queue=self.queue_name)
 
-        logging.info("RabbitMQ connection established")
         logging.info("Bank Service Initialized")
 
     def process_transaction(self, transaction_data):
