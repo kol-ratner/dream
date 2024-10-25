@@ -1,0 +1,36 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: rabbitmq-cluster-operator
+  namespace: flux-system
+spec:
+  interval: 50m
+  chart:
+    spec:
+      chart: rabbitmq-cluster-operator
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+      targetNamespace: rabbitmq-system
+      interval: 65m
+  # https://github.com/bitnami/charts/blob/main/bitnami/rabbitmq/values.yaml
+  values: {}
+---
+# apiVersion: helm.toolkit.fluxcd.io/v2beta1
+# kind: HelmRelease
+# metadata:
+#   name: postgresql
+#   namespace: flux-system
+# spec:
+#   interval: 50m
+#   chart:
+#     spec:
+#       chart: postgresql
+#       version: "*"
+#       sourceRef:
+#         kind: HelmRepository
+#         name: bitnami
+#       interval: 65m
+#   # https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+#   values: {}
