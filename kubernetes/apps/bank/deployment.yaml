@@ -20,14 +20,20 @@ spec:
         imagePullPolicy: Always
         env:
           - name: RABBITMQ_HOST
-            value: rabbitmq.data.svc.cluster.local
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-cluster-default-user
+                key: host
           - name: RABBITMQ_USER
-            value: user
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-cluster-default-user
+                key: username
           - name: RABBITMQ_PASSWORD
             valueFrom:
               secretKeyRef:
-                name: rabbitmq-credentials
-                key: rabbitmq-password
+                name: rabbitmq-cluster-default-user
+                key: password
         ports:
           - containerPort: 80
         resources:
