@@ -27,7 +27,6 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: rabbitmq-credentials
-                namespace: data
                 key: rabbitmq-password
         ports:
           - containerPort: 80
