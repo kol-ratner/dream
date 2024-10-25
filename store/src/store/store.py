@@ -16,7 +16,8 @@ logging.basicConfig(
 class StoreService:
     def __init__(self):
         self.rabbitmq_host = os.getenv('RABBITMQ_HOST')
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(self.rabbitmq_host))
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(self.rabbitmq_host))
         logging.info("RabbitMQ connection established")
 
         self.channel = self.connection.channel()
