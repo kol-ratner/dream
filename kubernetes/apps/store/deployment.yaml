@@ -21,6 +21,14 @@ spec:
         env:
           - name: RABBITMQ_HOST
             value: rabbitmq.data.svc.cluster.local
+          - name: RABBITMQ_USER
+            value: user
+          - name: RABBITMQ_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: rabbitmq-credentials
+                namespace: data
+                key: rabbitmq-password
         ports:
           - containerPort: 80
         resources:
