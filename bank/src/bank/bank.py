@@ -166,11 +166,11 @@ if __name__ == '__main__':
     async def health_check():
         return status.HTTP_200_OK
 
-    @app.get("/ready") 
+    @app.get("/ready")
     async def ready_check():
-        return (status.HTTP_200_OK 
-            if bank_service.check_readiness() 
-            else status.HTTP_503_SERVICE_UNAVAILABLE)
+        return (status.HTTP_200_OK
+                if bank_service.check_readiness()
+                else status.HTTP_503_SERVICE_UNAVAILABLE)
 
     # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
