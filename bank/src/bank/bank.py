@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import logging
 import os
@@ -6,14 +7,14 @@ import signal
 import sys
 import time
 from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
-
+from persistance.mongo import MongoConfig, MongoClient
 
 class BankService:
 
     def __init__(self):
         self._init_logging()
-        self.rabbitmq = self._setup_rabbitmq()        
-        # self._init_postgres()
+        self.rabbitmq = self._setup_rabbitmq()
+        self.mongodb = self._setup_mongo()  
         logging.info("Bank Service Initialized")
 
     def _init_logging(self):
@@ -23,9 +24,9 @@ class BankService:
 
     def _setup_rabbitmq(self) -> RabbitMQClient:
         config = RabbitMQConfig(
-            host=os.getenv('RABBITMQ_HOST', 'localhost'),
-            user=os.getenv('RABBITMQ_USER', 'guest'),
-            password=os.getenv('RABBITMQ_PASSWORD', 'guest'),
+            host=os.getenv('RABBITMQ_HOST'),
+            user=os.getenv('RABBITMQ_USER'),
+            password=os.getenv('RABBITMQ_PASSWORD'),
             declare_exchange=True,
             exchange_name='transactions',
             exchange_type='fanout',
@@ -34,6 +35,18 @@ class BankService:
             exclusive_queue=True
         )
         return RabbitMQClient(config=config).setup_connection()
+    
+    def _setup_mongo(self) -> MongoClient:
+        config = MongoConfig(
+            host=os.getenv('MONGODB_HOST'),
+            user=os.getenv('MONGODB_USER'),
+            password=os.getenv('MONGODB_PASSWORD'),
+            database="bankdb",
+            collection="transactions",
+            authSource="admin",
+            authMechanism="SCRAM-SHA-256",
+        )
+        return MongoClient(config=config).setup_connection()
 
     def process_transaction(self, transaction_data):
         """
@@ -48,18 +61,20 @@ class BankService:
         try:
             # Simulate processing time
             time.sleep(random.uniform(0.5, 2.0))
-
             # Randomly determine if the transaction is successful
             status = random.choice(['approved', 'declined'])
 
-            logging.info(
-                f"Transaction {transaction_data['transaction_id']} processed with status: {status}")
+            transaction_data.update({
+                'status': status,
+                'processed_at': datetime.now().isoformat()
+            })
 
-            # TODO: Insert transaction result into the database
-
+            result = self.mongodb.collection.insert_one(transaction_data)
+            logging.info(f"Transaction {transaction_data['transaction_id']} processed with status: {status}")
             return {
                 'transaction_id': transaction_data['transaction_id'],
-                'status': status
+                'status': status,
+                'mongo_id': str(result.inserted_id)
             }
 
         except Exception as e:

@@ -9,6 +9,7 @@ dependencies = [
     "pika>=1.3.2",
     "pytest>=8.3.3",
     "messaging @ file:///${PROJECT_ROOT}/../modules/messaging",
+    "persistance @ file:///${PROJECT_ROOT}/../modules/persistance",
 ]
 requires-python = "==3.9.*"
 readme = "README.md"
