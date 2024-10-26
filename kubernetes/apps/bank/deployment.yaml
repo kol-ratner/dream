@@ -18,7 +18,21 @@ spec:
       - name: bank
         image: ghcr.io/kol-ratner/dream/bank:main
         imagePullPolicy: Always
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /ready
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 15
         env:
+          - name: SERVICE_PORT
+            value: 8080
           - name: RABBITMQ_HOST
             valueFrom:
               secretKeyRef:
@@ -46,7 +60,7 @@ spec:
                 name: mongodb-cluster-banker-credentials
                 key: password
         ports:
-          - containerPort: 80
+          - containerPort: 8080
         resources:
           requests:
             memory: "64Mi"
