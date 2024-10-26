@@ -11,10 +11,10 @@ class MongoConfig:
     password: str
     database: str
     collection: str
+    replicaset: str
     authSource: str = "admin"
     authMechanism: str = "SCRAM-SHA-256"
     port: int = 27017
-    replicaset: Optional[str] = None
 
 @dataclass 
 class MongoClient:
@@ -23,7 +23,6 @@ class MongoClient:
     db: Optional[Database] = None
     
     def setup_connection(self) -> 'MongoClient':
-        connection_string = f"mongodb://{self.config.user}:{self.config.password}@{self.config.host}:{self.config.port}"
         self.client = PyMongoClient(
             host=self.config.host,
             port=self.config.port,
@@ -31,7 +30,7 @@ class MongoClient:
             password=self.config.password,
             authSource=self.config.authSource,
             authMechanism=self.config.authMechanism,
-
+            replicaset=self.config.replicaset   
         )
         self.db = self.client[self.config.database]
         self.collection = self.db[self.config.collection]
