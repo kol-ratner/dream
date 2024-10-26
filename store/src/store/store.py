@@ -10,10 +10,10 @@ from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 
 
 class StoreService:
-    
+
     def __init__(self):
         self._init_logging()
-        self.rabbitmq = self._setup_rabbitmq()        
+        self.rabbitmq = self._setup_rabbitmq()
         logging.info("Bank Service Initialized")
 
     def _init_logging(self):

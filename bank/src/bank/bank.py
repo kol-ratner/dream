@@ -9,12 +9,13 @@ import time
 from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 from persistance.mongo import MongoConfig, MongoClient
 
+
 class BankService:
 
     def __init__(self):
         self._init_logging()
         self.rabbitmq = self._setup_rabbitmq()
-        self.mongodb = self._setup_mongo()  
+        self.mongodb = self._setup_mongo()
         logging.info("Bank Service Initialized")
 
     def _init_logging(self):
@@ -35,7 +36,7 @@ class BankService:
             exclusive_queue=True
         )
         return RabbitMQClient(config=config).setup_connection()
-    
+
     def _setup_mongo(self) -> MongoClient:
         config = MongoConfig(
             host=os.getenv('MONGODB_HOST'),
