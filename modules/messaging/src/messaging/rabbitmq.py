@@ -26,10 +26,10 @@ class RabbitMQClient:
         self.connection = pika.BlockingConnection(
             pika.ConnectionParameters(
                 host=self.config.host,
-                # credentials=pika.PlainCredentials(
-                #     username=self.config.user,
-                #     password=self.config.password
-                # )
+                credentials=pika.PlainCredentials(
+                    username=self.config.user,
+                    password=self.config.password
+                )
             )
         )
         self.channel = self.connection.channel()
