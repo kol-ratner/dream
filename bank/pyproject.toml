@@ -10,6 +10,8 @@ dependencies = [
     "pytest>=8.3.3",
     "messaging @ file:///${PROJECT_ROOT}/../modules/messaging",
     "persistance @ file:///${PROJECT_ROOT}/../modules/persistance",
+    "uvicorn>=0.32.0",
+    "fastapi>=0.115.3",
 ]
 requires-python = "==3.9.*"
 readme = "README.md"

@@ -6,8 +6,12 @@ import random
 import signal
 import sys
 import time
+
 from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 from persistance.mongo import MongoConfig, MongoClient
+
+from fastapi import FastAPI, status
+import uvicorn
 
 
 class BankService:
@@ -49,6 +53,25 @@ class BankService:
             authMechanism="SCRAM-SHA-256",
         )
         return MongoClient(config=config).setup_connection()
+
+    def check_readiness(self) -> bool:
+        """
+        Checks if the service is ready by verifying RabbitMQ and MongoDB connections.
+        """
+        try:
+            # Check RabbitMQ connection
+            if not self.rabbitmq.connection.is_open:
+                return False
+            if not self.rabbitmq.channel.is_open:
+                return False
+
+            # Check MongoDB connection
+            self.mongodb.client.admin.command('ping')
+
+            return True
+        except Exception as e:
+            logging.error(f"Readiness check failed: {str(e)}")
+            return False
 
     def process_transaction(self, transaction_data):
         """
@@ -132,10 +155,25 @@ def signal_handler(self, sig, frame):
 
 
 if __name__ == '__main__':
-    # Register signal handlers for graceful shutdown
+    app = FastAPI()
+    bank_service = BankService()
+
+    @app.on_event("startup")
+    async def startup_event():
+        bank_service.run()
+
+    @app.get("/health")
+    async def health_check():
+        return status.HTTP_200_OK
+
+    @app.get("/ready") 
+    async def ready_check():
+        return (status.HTTP_200_OK 
+            if bank_service.check_readiness() 
+            else status.HTTP_503_SERVICE_UNAVAILABLE)
+
+    # Register signal handlers
     signal.signal(signal.SIGINT, signal_handler)
     signal.signal(signal.SIGTERM, signal_handler)
 
-    # Instantiate the BankService class and start it
-    bank_service = BankService()
-    bank_service.run()
+    uvicorn.run(app, host="0.0.0.0", port=os.getenv('SERVICE_PORT'))
