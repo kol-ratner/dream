@@ -71,7 +71,8 @@ class BankService:
             })
 
             result = self.mongodb.collection.insert_one(transaction_data)
-            logging.info(f"Transaction {transaction_data['transaction_id']} processed with status: {status}")
+            logging.info(
+                f"Transaction {transaction_data['transaction_id']} processed with status: {status}")
             return {
                 'transaction_id': transaction_data['transaction_id'],
                 'status': status,

@@ -1,4 +1,3 @@
-import os
 import unittest
 from unittest.mock import patch, MagicMock
 from src.bank.bank import BankService
@@ -28,7 +27,7 @@ class TestBankService(unittest.TestCase):
     def test_process_transaction(self):
         transaction_data = {'transaction_id': '123'}
         result = self.bank_service.process_transaction(transaction_data)
-        
+
         self.assertEqual(result['transaction_id'], '123')
         self.assertIn('status', result)
         self.assertIn('mongo_id', result)
@@ -41,8 +40,10 @@ class TestBankService(unittest.TestCase):
                 'status': 'approved',
                 'mongo_id': 'abc123'
             }
-            self.bank_service.handle_incoming_transaction({'transaction_id': '123'})
+            self.bank_service.handle_incoming_transaction(
+                {'transaction_id': '123'})
             mock_process.assert_called_once_with({'transaction_id': '123'})
+
 
 if __name__ == '__main__':
     unittest.main()
