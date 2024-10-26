@@ -5,22 +5,21 @@ metadata:
   namespace: default
 spec:
   members: 3
+  arbiters: 1
   type: ReplicaSet
   version: "4.4.13"
   security:
     authentication:
       modes: ["SCRAM"]
   users:
-    - name: admin
+    - name: banker
       db: admin
       passwordSecretRef:
         name: base-secret
         key: password
       roles:
-        - name: clusterAdmin
-          db: admin
-        - name: userAdminAnyDatabase
-          db: admin
-      scramCredentialsSecretName: mongo-admin-credentials
+        - name: readWrite
+          db: bankdb
+      scramCredentialsSecretName: banker
   additionalMongodConfig:
     storage.wiredTiger.engineConfig.journalCompressor: zlib
