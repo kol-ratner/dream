@@ -6,14 +6,20 @@ from src.store.store import StoreService
 
 class TestStoreService(unittest.TestCase):
 
-    @patch('src.store.store.pika.BlockingConnection')
-    def setUp(self, mock_blocking_connection):
-        # Mock the connection and channel
-        os.environ['RABBITMQ_HOST'] = 'localhost'
-        self.mock_connection = MagicMock()
+    @patch('src.store.store.RabbitMQClient')
+    def setUp(self, mock_rabbitmq_client):
+        # Mock the RabbitMQ client and channel
         self.mock_channel = MagicMock()
-        mock_blocking_connection.return_value = self.mock_connection
-        self.mock_connection.channel.return_value = self.mock_channel
+        self.mock_client = MagicMock()
+        self.mock_client.channel = self.mock_channel
+
+        mock_rabbitmq_client.return_value = self.mock_client
+        self.mock_client.setup_connection.return_value = self.mock_client
+
+        # Set test environment variables
+        os.environ['RABBITMQ_HOST'] = 'localhost'
+        os.environ['RABBITMQ_USER'] = 'guest'
+        os.environ['RABBITMQ_PASSWORD'] = 'guest'
 
         # Instantiate the StoreService
         self.store_service = StoreService()
@@ -27,7 +33,7 @@ class TestStoreService(unittest.TestCase):
         self.assertGreaterEqual(transaction['amount'], 10.0)
         self.assertLessEqual(transaction['amount'], 500.0)
 
-    @patch('src.store.store.json.dumps')
+    @patch('json.dumps')
     def test_send_transaction(self, mock_json_dumps):
         mock_json_dumps.return_value = '{"transaction_id": "123", "store_code": "STORE_001", "amount": 100.0}'
         transaction_data = {
@@ -36,7 +42,7 @@ class TestStoreService(unittest.TestCase):
             'amount': 100.0
         }
         self.store_service.send_transaction(transaction_data)
-        self.mock_channel.basic_publish.assert_called_once_with(
+        self.mock_client.channel.basic_publish.assert_called_once_with(
             exchange='transactions',
             routing_key='',
             body=mock_json_dumps.return_value.encode('utf-8')
