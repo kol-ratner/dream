@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+export RABBITMQ_HOST="localhost"; 
+export MONGODB_HOST="localhost"
+export MONGODB_USER="banker"
+export MONGODB_PASSWORD="banker"
+
+
+pdm run python src/bank/bank.py 
