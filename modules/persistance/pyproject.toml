@@ -1,0 +1,21 @@
+[project]
+name = "persistance"
+version = "0.1.0"
+description = "Default template for PDM package"
+authors = [
+    {name = "Kol Ratner", email = "60704569+kol-ratner@users.noreply.github.com"},
+]
+dependencies = [
+    "pymongo>=4.10.1",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+
+[tool.pdm]
+distribution = true
