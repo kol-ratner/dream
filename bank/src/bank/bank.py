@@ -40,6 +40,7 @@ class BankService:
     def _setup_mongo(self) -> MongoClient:
         config = MongoConfig(
             host=os.getenv('MONGODB_HOST'),
+            replicaset=os.getenv('MONGODB_REPLICASET'),
             user=os.getenv('MONGODB_USER'),
             password=os.getenv('MONGODB_PASSWORD'),
             database="bankdb",
