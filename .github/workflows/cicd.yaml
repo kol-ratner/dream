@@ -54,9 +54,9 @@ jobs:
     strategy:
       matrix:
         app: ["store", "bank"]
-    defaults:
-      run:
-        working-directory: ${{ matrix.app }}
+    # defaults:
+      # run:
+        # working-directory: ${{ matrix.app }}
     env:
       REGISTRY: ghcr.io
       IMAGE_NAME: "${{ github.repository }}/${{matrix.app}}"
@@ -78,7 +78,9 @@ jobs:
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
-          context: "{{defaultContext}}:/${{matrix.app}}"
+          # context: "{{defaultContext}}:/${{matrix.app}}"
+          context: .
+          file: ${{matrix.app}}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

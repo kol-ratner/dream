@@ -7,14 +7,14 @@ WORKDIR /app
 
 RUN pip install pdm==${PDM_VERSION}
 
-# Copy module dependencies first
-COPY modules ./modules
-COPY pyproject.toml pdm.lock ./
+# Copy dependencies first
+COPY modules /modules
+COPY bank/pyproject.toml bank/pdm.lock ./
 
 # Install dependencies
 RUN pdm install --prod
 
 # Copy application code
-COPY ./src .
+COPY bank/src .
 
 ENTRYPOINT ["pdm", "run", "python", "bank/bank.py"]
