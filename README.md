@@ -14,10 +14,10 @@ terraform init; terraform apply
 once mongo is live u need to run:
 
 this is a demo password obviously - u can input whatever you want
-`kubectl create secret generic base-secret --from-literal=password=secret123`
+`kubectl create secret generic base-secret --from-literal=password=banker -n mongodb`
 
 After the MongoDBCommunity resource is running, the Operator no longer requires the user's secret. MongoDB recommends that you securely store the user's password and then delete the user secret:
-`kubectl delete secret base-secret`
+`kubectl delete secret base-secret -n monngodb``
 
 
 another little hack cus we dont want to be creating secrets all over the place - just trying to keep this project as simple as possible for now

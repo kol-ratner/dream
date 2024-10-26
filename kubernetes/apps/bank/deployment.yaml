@@ -34,6 +34,18 @@ spec:
               secretKeyRef:
                 name: rabbitmq-cluster-default-user
                 key: password
+          - name: MONGODB_HOST
+            value: mongodb-cluster-svc.mongodb.svc.cluster.local
+          - name: MONGODB_REPLICASET
+            value: mongodb-cluster
+          - name: MONGODB_USER
+            value: banker
+          - name: MONGODB_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: banker-scram-credentials
+                namespace: mongodb
+                key: password
         ports:
           - containerPort: 80
         resources:

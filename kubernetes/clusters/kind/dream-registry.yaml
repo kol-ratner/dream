@@ -1,0 +1,23 @@
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImageRepository
+metadata:
+  name: dream
+  namespace: flux-system
+spec:
+  image: ghcr.io/kol-ratner/dream
+  interval: 5m0s
+---
+apiVersion: image.toolkit.fluxcd.io/v1beta2
+kind: ImagePolicy
+metadata:
+  name: dream
+  namespace: flux-system
+spec:
+  imageRepositoryRef:
+    name: dream
+  filterTags:
+    pattern: 'main'
+  policy:
+    semver:
+      range: 5.0.x
