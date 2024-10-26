@@ -1,0 +1,19 @@
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: clustersecret
+  namespace: flux-system
+spec:
+  interval: 50m
+  chart:
+    spec:
+      chart: cluster-secret
+      version: "*"
+      sourceRef:
+        kind: HelmRepository
+        name: clustersecret
+      interval: 65m
+  targetNamespace: clustersecret
+  install:
+    createNamespace: true
+  values: {}
