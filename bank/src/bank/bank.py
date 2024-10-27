@@ -66,7 +66,7 @@ class BankService:
             if not self.rabbitmq.channel.is_open:
                 return False
 
-             # Force an active check of the channel
+            # Force an active check of the channel
             self.rabbitmq.channel.basic_qos()
 
             # Check MongoDB connection
@@ -135,7 +135,7 @@ class BankService:
             try:
                 if not self.rabbitmq.connection.is_open:
                     self.rabbitmq = self._setup_rabbitmq()
-            
+
                 logging.info("Bank Service is running...")
 
                 def callback(ch, method, properties, body):
@@ -147,13 +147,16 @@ class BankService:
                     except json.JSONDecodeError as e:
                         logging.error(f"Failed to decode message: {str(e)}")
                         # Reject and requeue malformed messages
-                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+                        ch.basic_nack(
+                            delivery_tag=method.delivery_tag, requeue=True)
                     except Exception as e:
                         logging.error(f"Error processing message: {str(e)}")
                         # Reject and requeue failed messages
-                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+                        ch.basic_nack(
+                            delivery_tag=method.delivery_tag, requeue=True)
 
-                # Set prefetch count to control how many messages each consumer gets
+                # Set prefetch count to control how many messages each consumer
+                # gets
                 self.rabbitmq.channel.basic_qos(prefetch_count=1)
                 self.rabbitmq.channel.basic_consume(
                     queue=self.rabbitmq.config.queue_name,
@@ -163,8 +166,8 @@ class BankService:
                 self.rabbitmq.channel.start_consuming()
             except Exception as e:
                 logging.error(f"Unexpected error in consumer: {str(e)}")
-                #  Wait before retry to prevent aggressive reconnection attempts
-                time.sleep(5)  
+                # Wait before retry to prevent aggressive reconnection attempts
+                time.sleep(5)
 
 
 def signal_handler(sig, frame):
@@ -174,9 +177,11 @@ def signal_handler(sig, frame):
     signal.signal(signal.SIGTERM, signal_handler)
     sys.exit(0)
 
+
 def run_consumer():
     bank_service = BankService()
     bank_service.run()
+
 
 if __name__ == '__main__':
     import uvicorn
@@ -196,7 +201,6 @@ if __name__ == '__main__':
             return Response(status_code=status.HTTP_200_OK)
         else:
             return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
-
 
     consumer = Process(target=run_consumer)
     consumer.daemon = True  # This ensures the process exits when main process exits
