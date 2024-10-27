@@ -8,9 +8,6 @@ import time
 import uuid
 from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 
-from fastapi import FastAPI, status
-import uvicorn
-
 
 class StoreService:
 
@@ -33,18 +30,27 @@ class StoreService:
             exchange_name='transactions',
             exchange_type='fanout',
         )
-        return RabbitMQClient(config=config).setup_connection()
+        client = RabbitMQClient(config=config).setup_connection()
+        client.channel.confirm_delivery()  # Enable confirms once during setup
+        return client
 
     def check_readiness(self) -> bool:
         """
         Checks if the service is ready by verifying RabbitMQ and MongoDB connections.
         """
         try:
+            # Try to establish fresh connection if current one is closed
+            if not self.rabbitmq.connection.is_open:
+                self.rabbitmq = self._setup_rabbitmq()
+
             # Check RabbitMQ connection
             if not self.rabbitmq.connection.is_open:
                 return False
             if not self.rabbitmq.channel.is_open:
                 return False
+
+            # Force an active check of the channel
+            self.rabbitmq.channel.basic_qos()
 
             return True
         except Exception as e:
@@ -78,11 +84,13 @@ class StoreService:
         try:
             message = json.dumps(transaction_data).encode("utf-8")
             self.rabbitmq.channel.basic_publish(
-                exchange="transactions", routing_key="", body=message
+                exchange="transactions",
+                routing_key="",
+                body=message,
             )
             logging.info(
-                f"Sending transaction {transaction_data['transaction_id']} to the bank"
-            )
+                f"Transaction {transaction_data['transaction_id']} confirmed delivered")
+
         except Exception as e:
             logging.error(
                 f"Failed to send transaction {transaction_data['transaction_id']}: {str(e)}"
@@ -96,40 +104,55 @@ class StoreService:
         logging.info("Store Service is running...")
         while True:
             try:
+                # the goal here is to ensure that the app handles depdendency
+                # failures and essentially doesnt generate transactions without
+                # knowing that the messagebroker is available
+                if not self.rabbitmq.connection.is_open:
+                    self.rabbitmq = self._setup_rabbitmq()
+
                 transaction_data = self.generate_transaction()
                 self.send_transaction(transaction_data)
                 time.sleep(random.randint(1, 10))
 
             except Exception as e:
                 logging.error(f"Error in transaction loop: {str(e)}")
+                time.sleep(5)  # Backoff before retry
 
 
 def signal_handler(self, sig, frame):
-    logging.info("Gracefully shutting down the Store Service...")
-    self.connection.close()
+    logging.info('Gracefully shutting down the Bank Service...')
+    # Set up signal handlers in consumer process
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     sys.exit(0)
 
 
+def run_producer():
+    store_service = StoreService()
+    store_service.run()
+
+
 if __name__ == "__main__":
+    import uvicorn
+    from fastapi import FastAPI, status, Response
+    from multiprocessing import Process
+
     app = FastAPI()
     store_service = StoreService()
 
-    @app.on_event("startup")
-    async def startup_event():
-        store_service.run()
-
     @app.get("/health")
     async def health_check():
-        return status.HTTP_200_OK
+        return Response(status_code=status.HTTP_200_OK)
 
     @app.get("/ready")
     async def ready_check():
-        return (status.HTTP_200_OK
-                if store_service.check_readiness()
-                else status.HTTP_503_SERVICE_UNAVAILABLE)
+        if store_service.check_readiness():
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
+    producer = Process(target=run_producer)
+    producer.daemon = True  # This ensures the process exits when main process exits
+    producer.start()
 
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('SERVICE_PORT')))
