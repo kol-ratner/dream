@@ -37,7 +37,7 @@ class BankService:
             exchange_type='fanout',
             declare_queue=True,
             queue_name='transactions',
-            exclusive_queue=True
+            exclusive_queue=False
         )
         return RabbitMQClient(config=config).setup_connection()
 
@@ -132,15 +132,23 @@ class BankService:
             try:
                 transaction_data = json.loads(body)
                 self.handle_incoming_transaction(transaction_data)
+                # Explicitly acknowledge successful processing
+                ch.basic_ack(delivery_tag=method.delivery_tag)
             except json.JSONDecodeError as e:
                 logging.error(f"Failed to decode message: {str(e)}")
+                # Reject and requeue malformed messages
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
             except Exception as e:
                 logging.error(f"Error processing message: {str(e)}")
+                # Reject and requeue failed messages
+                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
 
+        # Set prefetch count to control how many messages each consumer gets
+        self.rabbitmq.channel.basic_qos(prefetch_count=1)
         self.rabbitmq.channel.basic_consume(
             queue=self.rabbitmq.config.queue_name,
             on_message_callback=callback,
-            auto_ack=True)
+            auto_ack=False)
 
         try:
             self.rabbitmq.channel.start_consuming()
