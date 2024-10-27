@@ -4,9 +4,6 @@ export SERVICE_PORT="8080"
 export RABBITMQ_HOST="localhost"
 export RABBITMQ_USER="guest"
 export RABBITMQ_PASSWORD="guest"
-export MONGODB_HOST="localhost"
-export MONGODB_USER="banker"
-export MONGODB_PASSWORD="banker"
 
 
-pdm run python src/bank/bank.py 
+pdm run python src/store/store.py 

@@ -10,9 +10,6 @@ import time
 from messaging.rabbitmq import RabbitMQConfig, RabbitMQClient
 from persistance.mongo import MongoConfig, MongoClient
 
-from fastapi import FastAPI, status
-import uvicorn
-
 
 class BankService:
 
@@ -59,11 +56,18 @@ class BankService:
         Checks if the service is ready by verifying RabbitMQ and MongoDB connections.
         """
         try:
+            # Try to establish fresh connection if current one is closed
+            if not self.rabbitmq.connection.is_open:
+                self.rabbitmq = self._setup_rabbitmq()
+
             # Check RabbitMQ connection
             if not self.rabbitmq.connection.is_open:
                 return False
             if not self.rabbitmq.channel.is_open:
                 return False
+
+             # Force an active check of the channel
+            self.rabbitmq.channel.basic_qos()
 
             # Check MongoDB connection
             self.mongodb.client.admin.command('ping')
@@ -126,62 +130,77 @@ class BankService:
         """
         Starts the main loop of the Bank Service to handle incoming transactions.
         """
-        logging.info("Bank Service is running...")
 
-        def callback(ch, method, properties, body):
+        while True:
             try:
-                transaction_data = json.loads(body)
-                self.handle_incoming_transaction(transaction_data)
-                # Explicitly acknowledge successful processing
-                ch.basic_ack(delivery_tag=method.delivery_tag)
-            except json.JSONDecodeError as e:
-                logging.error(f"Failed to decode message: {str(e)}")
-                # Reject and requeue malformed messages
-                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+                if not self.rabbitmq.connection.is_open:
+                    self.rabbitmq = self._setup_rabbitmq()
+            
+                logging.info("Bank Service is running...")
+
+                def callback(ch, method, properties, body):
+                    try:
+                        transaction_data = json.loads(body)
+                        self.handle_incoming_transaction(transaction_data)
+                        # Explicitly acknowledge successful processing
+                        ch.basic_ack(delivery_tag=method.delivery_tag)
+                    except json.JSONDecodeError as e:
+                        logging.error(f"Failed to decode message: {str(e)}")
+                        # Reject and requeue malformed messages
+                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+                    except Exception as e:
+                        logging.error(f"Error processing message: {str(e)}")
+                        # Reject and requeue failed messages
+                        ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
+
+                # Set prefetch count to control how many messages each consumer gets
+                self.rabbitmq.channel.basic_qos(prefetch_count=1)
+                self.rabbitmq.channel.basic_consume(
+                    queue=self.rabbitmq.config.queue_name,
+                    on_message_callback=callback,
+                    auto_ack=False)
+
+                self.rabbitmq.channel.start_consuming()
             except Exception as e:
-                logging.error(f"Error processing message: {str(e)}")
-                # Reject and requeue failed messages
-                ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True)
-
-        # Set prefetch count to control how many messages each consumer gets
-        self.rabbitmq.channel.basic_qos(prefetch_count=1)
-        self.rabbitmq.channel.basic_consume(
-            queue=self.rabbitmq.config.queue_name,
-            on_message_callback=callback,
-            auto_ack=False)
-
-        try:
-            self.rabbitmq.channel.start_consuming()
-        except Exception as e:
-            logging.error(f"Unexpected error in consumer: {str(e)}")
+                logging.error(f"Unexpected error in consumer: {str(e)}")
+                #  Wait before retry to prevent aggressive reconnection attempts
+                time.sleep(5)  
 
 
-def signal_handler(self, sig, frame):
+def signal_handler(sig, frame):
     logging.info('Gracefully shutting down the Bank Service...')
-    self.connection.close()
+    # Set up signal handlers in consumer process
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
     sys.exit(0)
 
+def run_consumer():
+    bank_service = BankService()
+    bank_service.run()
 
 if __name__ == '__main__':
+    import uvicorn
+    from fastapi import FastAPI, status, Response
+    from multiprocessing import Process
+
     app = FastAPI()
     bank_service = BankService()
 
-    @app.on_event("startup")
-    async def startup_event():
-        bank_service.run()
-
     @app.get("/health")
     async def health_check():
-        return status.HTTP_200_OK
+        return Response(status_code=status.HTTP_200_OK)
 
     @app.get("/ready")
     async def ready_check():
-        return (status.HTTP_200_OK
-                if bank_service.check_readiness()
-                else status.HTTP_503_SERVICE_UNAVAILABLE)
+        if bank_service.check_readiness():
+            return Response(status_code=status.HTTP_200_OK)
+        else:
+            return Response(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
-    # Register signal handlers
-    signal.signal(signal.SIGINT, signal_handler)
-    signal.signal(signal.SIGTERM, signal_handler)
 
-    uvicorn.run(app, host="0.0.0.0", port=int(os.getenv('SERVICE_PORT')))
+    consumer = Process(target=run_consumer)
+    consumer.daemon = True  # This ensures the process exits when main process exits
+    consumer.start()
+
+    port = int(os.getenv('SERVICE_PORT', 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
